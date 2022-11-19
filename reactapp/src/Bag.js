@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import {Link} from "react-router-dom";
 import DocumentTitle from 'react-document-title'
+import ErrorComponent from "./Error";
 
 function sleep(milliseconds) {
   var start = new Date().getTime();
@@ -32,7 +33,7 @@ class Bag extends Component {
         // this.load_sum();
     }
     load_bag(){
-        const res = fetch(`http://127.0.0.1:8000/client/1/bag/`)
+        const res = fetch(`http://127.0.0.1:8000/client/${localStorage.getItem('userId')}/bag/`)
         .then (res => res.json())
         .then(
             (result) =>{
@@ -57,7 +58,7 @@ class Bag extends Component {
 
     }
     load_client(){
-        const res = fetch(`http://127.0.0.1:8000/client/1`)
+        const res = fetch(`http://127.0.0.1:8000/client/${localStorage.getItem('userId')}`)
         .then (res => res.json())
         .then(
             (result) =>{
@@ -69,7 +70,7 @@ class Bag extends Component {
         )
     }
     load_purchases(){
-        const res = fetch(`http://127.0.0.1:8000/client/1/current_bag/`)
+        const res = fetch(`http://127.0.0.1:8000/client/${localStorage.getItem('userId')}/current_bag/`)
         .then (res => res.json())
         .then(
             (result) =>{
@@ -80,26 +81,8 @@ class Bag extends Component {
             }
         )
 
-
     }
-    load_sum(){
-        const res = fetch(`http://127.0.0.1:8000/client/1/bag/1/sum/`)
-        .then (res => res.json())
-        .then(
-            (result) =>{
-                // this.setState((state) > ({
-                //     isLoaded: true,
-                //     sum: state.sum =
-                // }))
-                this.setState({
-                    isLoaded:true,
-                    sum: Number(result[0].price__sum),
-                });
-                console.log(this.state.sum);
-            }
-        )
 
-    }
     render() {
         const {error, isLoaded,bag, purchases, sum} = this.state;
         // console.log(purchases);
@@ -125,7 +108,7 @@ class Bag extends Component {
             alert(`Удалено из корзины: ${ purchase.idstock.idmodel.modelname } - ${purchase.idstock.size}`)
         }
         const buy=()=>{
-            fetch(`http://127.0.0.1:8000/client/1/bag/1/buy/`)
+            fetch(`http://127.0.0.1:8000/client/${localStorage.getItem('userId')}/bag/1/buy/`)
                 .then(response=>{
                     this.load_purchases();
                     this.load_bag();
@@ -139,7 +122,8 @@ class Bag extends Component {
                 })
 
         }
-
+        if (localStorage.getItem('accessToken')==='')
+            return (<div><ErrorComponent/></div>)
         return (
             <DocumentTitle title = 'Корзина'>
             <div>

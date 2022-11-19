@@ -1,6 +1,8 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 import datetime
+from django.contrib.auth.models import User
+
 
 class Producer(models.Model):
     producerid=models.AutoField(verbose_name='producerId', primary_key=True)
@@ -44,14 +46,16 @@ class Stock(models.Model):
     def __str__(self):
         return f'{self.idmodel.modelname} {self.size}'
 
-class Client(models.Model):
-    clientid=models.AutoField(primary_key=True)
-    clientname=models.CharField(max_length=150)
-    login=models.CharField(unique=True, max_length=20)
-    password = models.CharField(unique=True, max_length=10)
-    # current_bag=models.IntegerField(default=0)
-    def __str__(self):
-        return self.clientname
+# class Client(models.Model):
+#     clientid=models.AutoField(primary_key=True)
+#     clientname=models.CharField(max_length=150)
+#     login=models.CharField(unique=True, max_length=20)
+#     password = models.CharField(unique=True, max_length=10)
+#     # current_bag=models.IntegerField(default=0)
+#     def __str__(self):
+#         return self.clientname
+#     class Meta:
+#         db_table='auth_user'
 
 class State(models.Model):
     stateid=models.AutoField(primary_key=True),
@@ -61,13 +65,13 @@ class State(models.Model):
 
 class Bag(models.Model):
     bagid=models.AutoField(verbose_name='bagId', primary_key=True)
-    idclient = models.ForeignKey(Client, models.DO_NOTHING, verbose_name='idClient', default=1, related_name='bag_client')
+    idclient = models.ForeignKey(User, models.DO_NOTHING, verbose_name='idClient', default=1, related_name='bag_client')
     # bought=models.BooleanField(blank=True, null=True, default=False)
     sum = models.IntegerField(default=0, null=False)
     bagstate=models.ForeignKey(State, models.DO_NOTHING, default=1)
     date = models.DateField(_("Date"), default=datetime.date.today)
     def __str__(self):
-        return f'{self.bagid}--{self.idclient.clientname}--{self.bagstate.statename}--{self.date}'
+        return f'{self.bagid}--{self.idclient.username}--{self.bagstate.statename}--{self.date}'
 
 
 class Purchase(models.Model):
@@ -77,6 +81,6 @@ class Purchase(models.Model):
     quantity=models.IntegerField(blank=True, null=True, default=0)
     # bought = models.BooleanField(blank=True, null=True, default=False)
     def __str__(self):
-        return f'Покупка {self.purchaseid}: {self.idstock.idmodel.modelname} {self.idstock.size} -- {self.idbag.idclient.clientname}==>{self.idbag_id}'
+        return f'Покупка {self.purchaseid}: {self.idstock.idmodel.modelname} {self.idstock.size} -- {self.idbag.idclient.username}==>{self.idbag_id}'
 
 

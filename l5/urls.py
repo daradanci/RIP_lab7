@@ -2,6 +2,10 @@ from django.contrib import admin
 from django.urls import path, include, re_path
 from rest_framework_nested import routers
 from . import views as shop_views
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
 
 
 router = routers.DefaultRouter()
@@ -47,6 +51,10 @@ urlpatterns = [
     path('', include(bag_router.urls)),
     path('', include(purchase_router.urls)),
     path('add_user',shop_views.getJson,name='getJson'),
+    path('api/user', shop_views.user, name='user'),
+    # path('api/login', shop_views.login, name='login'),
+    path('api/token/obtain', TokenObtainPairView.as_view(), name='token_obtain'),
+    path('api/token/refresh', TokenRefreshView.as_view(), name='token_refresh'),
 ]
 # urlpatterns+=[re_path(r'^.*', TemplateView.as_view(template_name='index.html'))]
 

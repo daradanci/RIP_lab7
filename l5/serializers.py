@@ -1,14 +1,11 @@
-# New solution code was added to the code 
-# starts from line 90 and ends in line 111
-# Issue was to get filtered nested data 
-# from the database.   
 
 
 from .models import *
 from rest_framework import serializers
 from django.db.models import Max, Min, Sum
-
-
+from rest_framework.serializers import Serializer, ModelSerializer, CharField
+from rest_framework.authtoken.models import Token
+from django.contrib.auth.models import User
 
 class RangeSerializer(serializers.ModelSerializer):
     class Meta:
@@ -42,7 +39,7 @@ class ProducerSerializer(serializers.ModelSerializer):
 
 class ClientSerializer(serializers.ModelSerializer):
     class Meta:
-        model=Client
+        model=User
         # fields = ["clientid", "clientname", "login", "password"]
         fields='__all__'
 
@@ -158,3 +155,24 @@ class CountModelsSerializer(serializers.ModelSerializer):
         # date=datetime.datetime.strptime(ID,'%Y-%m-%d')
         count=Bag.objects.filter(date=ID).count()
         return count
+
+from rest_framework.serializers import ModelSerializer
+from django.contrib.auth.models import User
+
+class UserSerializer(ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = ['id','username', 'first_name', 'last_name', 'email', 'date_joined']
+
+class LoginRequestSerializer(Serializer):
+    model = User
+    username = CharField(required=True)
+    password = CharField(required=True)
+
+
+# class TokenSeriazliser(ModelSerializer):
+#     class Meta:
+#         model = Token
+#         fields = ['key']
+

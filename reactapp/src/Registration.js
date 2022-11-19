@@ -19,24 +19,7 @@ class Registration extends Component {
         }
     }
     componentDidMount(){
-        const res = fetch("http://127.0.0.1:8000/range/")
-        .then (res => res.json())
-        .then(
 
-            (result) =>{
-                this.setState({
-                    isLoaded:true,
-                    items: result,
-                });
-                console.log(this.state.items)
-            },
-            (error) =>{
-            this.setState({
-                isLoaded:false,
-                error});
-            }
-        )
-        console.log(res)
     }
     render() {
         const {error, isLoaded, items, username, email, password} = this.state;
@@ -44,9 +27,8 @@ class Registration extends Component {
             const requestOptions = {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            // body: JSON.stringify({ username: this.state.username, email:this.state.email,
-            //     password:this.state.password })
-                body: JSON.stringify({ hello:"privet" })
+            body: JSON.stringify({ username: this.state.username, email:this.state.email,
+                password:this.state.password })
             };
             fetch(`http://127.0.0.1:8000/add_user`, requestOptions)
 

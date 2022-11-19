@@ -1,16 +1,25 @@
 from django.shortcuts import render
 from django.db.models import Max, Min, Sum
 from rest_framework import viewsets, serializers, status, generics
-from rest_framework.decorators import api_view
+# from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
+from rest_framework.permissions import IsAuthenticated, AllowAny
+# from rest_framework.authentication import BasicAuthentication
+# from rest_framework.authentication import TokenAuthentication
+# from rest_framework.authentication import SessionAuthentication
+# from rest_framework.authtoken.models import Token
+# from django.contrib.auth import authenticate
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from django.contrib.auth import authenticate, login
 from rest_framework.views import APIView
 from .models import *
 from .serializers import *
 from drf_multiple_model.views import ObjectMultipleModelAPIView
-from django.contrib.auth import authenticate, login
 from django.http import HttpResponse
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.request import Request
 from rest_framework.views import APIView
 from django.conf import settings
 import uuid
@@ -73,7 +82,7 @@ class ProducerViewSet(viewsets.ModelViewSet):
 
 class ClientViewSet(viewsets.ModelViewSet):
     serializer_class = ClientSerializer
-    queryset = Client.objects.all()
+    queryset = User.objects.all()
 
 
 
@@ -138,7 +147,7 @@ class BagOfClientViewSet(viewsets.ModelViewSet):
             new_bag=Bag(sum=0, idclient_id=self.kwargs['client_pk'], bagstate_id=1)
             new_bag.save()
 
-            client=Client.objects.get(clientid=self.kwargs['client_pk'])
+            client=User.objects.get(id=self.kwargs['client_pk'])
             client.current_bag=new_bag.bagid
             client.save()
 
@@ -240,12 +249,34 @@ from django.contrib.auth.models import User
 @api_view(['GET', 'POST'])
 def getJson(request):
         if request.method == 'POST':
-            # user = User.objects.create_user(request.data['username'], request.data['email'], request.data['password'])
-            # user.last_name = 'Lennon'
-            # user.save()
+            user = User.objects.create_user(request.data['username'], request.data['email'], request.data['password'])
+            user.last_name = 'Lennon'
+            user.save()
             print(request.data)
             return HttpResponse("{'status': 'ok'}")
         else:
             return HttpResponse("{'status': 'neok'}")
 
 
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def login(request: Request):
+    serializer = LoginRequestSerializer(data=request.data)
+    if serializer.is_valid():
+        authenticated_user = authenticate(**serializer.validated_data)
+        if authenticated_user is not None:
+            login(request, authenticated_user)
+            return Response({'status': 'Success'})
+        else:
+            return Response({'error': 'Invalid credentials'}, status=403)
+    else:
+        return Response(serializer.errors, status=400)
+
+@api_view()
+@permission_classes([IsAuthenticated])
+@authentication_classes([JWTAuthentication])
+def user(request: Request):
+    print(UserSerializer(request.user).data)
+    return Response({
+        'data': UserSerializer(request.user).data
+    })

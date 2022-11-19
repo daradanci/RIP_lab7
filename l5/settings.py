@@ -39,10 +39,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework.authtoken',
     'reactapp',
     'corsheaders',
     'l5',
     'drf_multiple_model',
+    'rest_framework_simplejwt.token_blacklist',
 ]
 CORS_ORIGIN_WHITELIST = (
     'http://localhost:3000', # For react front end
@@ -148,3 +150,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 STATICFILES_DIRS=[
     os.path.join(BASE_DIR, 'reactapp/build/static')
 ]
+ROTATE_REFRESH_TOKENS=True
+BLACKLIST_AFTER_ROTATION=True
+ACCESS_TOKEN_LIFETIME=10000
+REFRESH_TOKEN_LIFETIME=10000

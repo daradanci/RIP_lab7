@@ -8,7 +8,7 @@ import {
     useRouteMatch
 } from "react-router-dom";
 import {isVisible} from "@testing-library/user-event/dist/utils";
-
+import ErrorComponent from "./Error";
 class Model extends Component {
     constructor(props) {
         super(props);
@@ -19,12 +19,14 @@ class Model extends Component {
             sizes:[],
             producer:[],
             bag:{},
-            client:{}
+            client:{},
+            access:null,
         }
         this.rangeId=1;
         this.modelId=1;
         this.producerId=1;
         this.count=1;
+
     }
     componentDidMount(){
         this.load_client()
@@ -35,7 +37,7 @@ class Model extends Component {
     }
 
     load_client(){
-        const res = fetch(`http://127.0.0.1:8000/client/1`)
+        const res = fetch(`http://127.0.0.1:8000/client/${localStorage.getItem('userId')}`)
         .then (res => res.json())
         .then(
             (result) =>{
@@ -48,7 +50,7 @@ class Model extends Component {
     }
 
     load_bag(){
-        const res = fetch(`http://127.0.0.1:8000/client/1/bag/`)
+        const res = fetch(`http://127.0.0.1:8000/client/${localStorage.getItem('userId')}/bag/`)
         .then (res => res.json())
         .then(
             (result) =>{
@@ -127,12 +129,14 @@ class Model extends Component {
 
 
     render() {
-        const {error, isLoaded, model, sizes, producer, bag} = this.state;
+        const {error, isLoaded, model, sizes, producer, bag, access} = this.state;
+        console.log(`Пользователь: ${localStorage.getItem('userId')}`)
         console.log(model.modelname)
         console.log(bag)
         const buy=(bag)=> {
             let item=JSON.parse(document.getElementById('size_list').value)
             console.log(item)
+
             if(item) {
                 let combo=window.location.pathname.split('/');
                 let rangeId=combo[2];
@@ -169,6 +173,8 @@ class Model extends Component {
                 alert(`Добавлено в корзину: ${ model.modelname } - ${item.size}`)
                         }
                     }
+        if (localStorage.getItem('accessToken')==='')
+            return (<div><ErrorComponent/></div>)
         return (
             <div>
                 <div className={"models_list"}>

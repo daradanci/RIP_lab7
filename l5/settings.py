@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 
 from pathlib import Path
 import os
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -26,8 +27,8 @@ SECRET_KEY = 'django-insecure-fw7edr-+v(znj2xnr(0!4yk&2si*#haek3*1nkmqsk0agav^o4
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = ['172.17.231.1','localhost', '127.0.0.1', '176.59.174.196', '192.168.76.129']
+# ALLOWED_HOSTS=[]
 
 # Application definition
 
@@ -49,6 +50,7 @@ INSTALLED_APPS = [
 CORS_ORIGIN_WHITELIST = (
     'http://localhost:3000', # For react front end
     'http://localhost:8000', # For Django
+
 )
 CORS_ALLOW_CREDENTIALS: True
 MIDDLEWARE = [
@@ -152,5 +154,5 @@ STATICFILES_DIRS=[
 ]
 ROTATE_REFRESH_TOKENS=True
 BLACKLIST_AFTER_ROTATION=True
-ACCESS_TOKEN_LIFETIME=10000
-REFRESH_TOKEN_LIFETIME=10000
+ACCESS_TOKEN_LIFETIME=timedelta(minutes=10)
+REFRESH_TOKEN_LIFETIME=timedelta(days=1)

@@ -83,39 +83,5 @@ function App() {
 }
 
 
-// const App = () => {
-//   const isAuthenticated = getToken();
-//
-//   return (
-//     <Router>
-//       <Suspense fallback={<Loader />}>
-//         <Switch>
-//           <PublicRoute
-//             path="/login"
-//             isAuthenticated={isAuthenticated}
-//           >
-//             <LoginPage />
-//           </PublicRoute>
-//           <PublicRoute
-//             path="/register"
-//             isAuthenticated={isAuthenticated}
-//           >
-//             <Register />
-//           </PublicRoute>
-//           <PublicRoute
-//             path="/forgot-password"
-//             isAuthenticated={isAuthenticated}
-//           >
-//           </PublicRoute>
-//           <PrivateRoute
-//             path="/"
-//             isAuthenticated={isAuthenticated}
-//           >
-//           </PrivateRoute>
-//         </Switch>
-//       </Suspense>
-//     </Router>
-//   );
-// };
 
 export default App;

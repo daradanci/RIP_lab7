@@ -15,15 +15,15 @@ class RangeSerializer(serializers.ModelSerializer):
 
 
 class ModelsSerializer(serializers.ModelSerializer):
-    # @classmethod
-    # def setup_eager_loading(cls, queryset):
-    #     queryset = queryset.only(*cls.Meta.fields)
-    #     return queryset
     class Meta:
         model=Models
         fields = ["modelid", "idrange", "modelname", "idproducer", "price", "image"]
 
-
+class ModelsDeepSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Models
+        fields = '__all__'
+        depth=2
 
 class StockSerializer(serializers.ModelSerializer):
     class Meta:
@@ -42,6 +42,11 @@ class ClientSerializer(serializers.ModelSerializer):
         model=User
         # fields = ["clientid", "clientname", "login", "password"]
         fields='__all__'
+
+class StateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=State
+        fields = '__all__'
 
 # class BagSerializer(serializers.ModelSerializer):
 #     class Meta:
@@ -103,6 +108,9 @@ class BagSerializer(serializers.ModelSerializer):
     class Meta:
         model=Bag
         fields='__all__'
+
+
+
 
 
 class ExtSerializer(serializers.ModelSerializer):
@@ -176,3 +184,9 @@ class LoginRequestSerializer(Serializer):
 #         model = Token
 #         fields = ['key']
 
+class ExtBagSerializer(serializers.ModelSerializer):
+    idclient=UserSerializer(read_only=True)
+    bagstate=StateSerializer(read_only=True)
+    class Meta:
+        model=Bag
+        fields = '__all__'

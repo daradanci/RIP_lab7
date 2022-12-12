@@ -84,3 +84,27 @@ class Purchase(models.Model):
         return f'Покупка {self.purchaseid}: {self.idstock.idmodel.modelname} {self.idstock.size} -- {self.idbag.idclient.username}==>{self.idbag_id}'
 
 
+class Author(models.Model):
+    last_name = models.CharField(max_length=200)
+    first_name = models.CharField(max_length=200)
+    birth_date = models.DateField()
+
+    class Meta:
+        db_table = 'authors'
+
+
+class Language(models.Model):
+    name = models.CharField(max_length=200)
+
+    class Meta:
+        db_table = 'languages'
+
+
+class Book(models.Model):
+    title = models.CharField(max_length=200)
+    authors = models.ManyToManyField(Author)
+    available_languages = models.ManyToManyField(Language)
+
+    class Meta:
+        db_table = 'books'
+

@@ -25,6 +25,7 @@ from django.conf import settings
 import uuid
 # Connect to our Redis instance
 # session_storage = redis.StrictRedis(host=settings.REDIS_HOST, port=settings.REDIS_PORT)
+import ast
 
 def index(request):
     return render(request, 'index.html')
@@ -34,16 +35,44 @@ class RangeViewSet(viewsets.ModelViewSet):
     queryset = Range.objects.all().order_by('rangename')
     serializer_class = RangeSerializer
 
+
 class ModelsViewSet(viewsets.ModelViewSet):
     queryset = Models.objects.all().order_by('idrange', 'modelname')
-    serializer_class = ModelsSerializer
+    # serializer_class = ModelsSerializer
+    def get_serializer(self, *args, **kwargs):
+        params = self.request.query_params.dict()
+        if 'deep' in params :
+            serializer_class = ModelsDeepSerializer
+        else:
+            serializer_class = ModelsSerializer
+        kwargs['context'] = self.get_serializer_context()
 
+        return serializer_class(*args, **kwargs)
+
+@permission_classes([IsAuthenticated])
+@authentication_classes([JWTAuthentication])
 class StockViewSet(viewsets.ModelViewSet):
     queryset = Stock.objects.all().order_by('idmodel')
     serializer_class = StockSerializer
 
+@permission_classes([IsAuthenticated])
+@authentication_classes([JWTAuthentication])
+class StateViewSet(viewsets.ModelViewSet):
+    queryset = State.objects.all().order_by("id")
+    serializer_class = StateSerializer
+
+
 class ModelsOfTypeViewSet(viewsets.ModelViewSet):
-    serializer_class = ModelsSerializer
+    # serializer_class = ModelsSerializer
+    def get_serializer(self, *args, **kwargs):
+        params = self.request.query_params.dict()
+        if 'deep' in params :
+            serializer_class = ModelsDeepSerializer
+        else:
+            serializer_class = ModelsSerializer
+        kwargs['context'] = self.get_serializer_context()
+
+        return serializer_class(*args, **kwargs)
 
     def get_queryset(self):
         queryset = Models.objects.filter(idrange=self.kwargs['range_pk'])
@@ -69,17 +98,22 @@ class TestModelsViewSet(viewsets.ModelViewSet):
 
         return queryset
 
-
+@permission_classes([IsAuthenticated])
+@authentication_classes([JWTAuthentication])
 class StockOfModelViewSet(viewsets.ModelViewSet):
     serializer_class = StockSerializer
     def get_queryset(self):
         queryset = Stock.objects.filter(idmodel=self.kwargs['models_pk'], amount__gt=0)
         return queryset
 
+# @permission_classes([IsAuthenticated])
+# @authentication_classes([JWTAuthentication])
 class ProducerViewSet(viewsets.ModelViewSet):
     serializer_class = ProducerSerializer
-    queryset = Producer.objects.all()
+    queryset = Producer.objects.all().order_by('producerid')
 
+@permission_classes([IsAuthenticated])
+@authentication_classes([JWTAuthentication])
 class ClientViewSet(viewsets.ModelViewSet):
     serializer_class = ClientSerializer
     queryset = User.objects.all()
@@ -128,6 +162,8 @@ class ExtViewSet(viewsets.ModelViewSet):
     serializer_class = ExtSerializer
     queryset = Purchase.objects.all()
 
+@permission_classes([IsAuthenticated])
+@authentication_classes([JWTAuthentication])
 class BagViewSet(viewsets.ModelViewSet):
     serializer_class = BagSerializer
     queryset = Bag.objects.all()
@@ -147,9 +183,9 @@ class BagOfClientViewSet(viewsets.ModelViewSet):
             new_bag=Bag(sum=0, idclient_id=self.kwargs['client_pk'], bagstate_id=1)
             new_bag.save()
 
-            client=User.objects.get(id=self.kwargs['client_pk'])
-            client.current_bag=new_bag.bagid
-            client.save()
+            # client=User.objects.get(id=self.kwargs['client_pk'])
+            # client.current_bag=new_bag.bagid
+            # client.save()
 
         else:
             for bag in queryset:
@@ -161,9 +197,11 @@ class BagOfClientViewSet(viewsets.ModelViewSet):
         return queryset
 
 class BagsOfClientViewSet(viewsets.ModelViewSet):
-    serializer_class = BagSerializer
+    # serializer_class = BagSerializer
+    serializer_class = ExtBagSerializer
+
     def get_queryset(self):
-        queryset = Bag.objects.filter(idclient=self.kwargs['client_pk']).order_by('bagstate','-date')
+        queryset = Bag.objects.filter(idclient=self.kwargs['client_pk'], bagstate_id__gt=1).order_by('bagstate','-date')
         return queryset
 
 
@@ -174,9 +212,26 @@ class CurrBagOfClientViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = Purchase.objects.filter(idbag__idclient_id=self.kwargs['client_pk'], idbag__bagstate=1)
+        # queryset = Purchase.objects.filter(idbag__idclient_id=self.kwargs['client_pk'])
         print(type(queryset))
         return queryset
-        
+
+
+class BagSalesOfClientViewSet(viewsets.ModelViewSet):
+    # serializer_class = ExtSerializer
+    serializer_class = ExtSerializerExtra
+
+    def get_queryset(self):
+        params = self.request.query_params.dict()
+        if 'bag' in params:
+            queryset = Purchase.objects.filter(idbag__idclient_id=self.kwargs['client_pk'],
+                                               idbag=params['bag'],  idbag__bagstate_id__gt=1)
+        else:
+            queryset = Purchase.objects.filter(idbag__idclient_id=self.kwargs['client_pk'],  idbag__bagstate_id__gt=1)
+        # queryset = Purchase.objects.filter(idbag__idclient_id=self.kwargs['client_pk'])
+        print(type(queryset))
+        return queryset
+
 
 class PurchaseOfBagViewSet(viewsets.ModelViewSet):
     # serializer_class = PurchaseSerializer
@@ -216,6 +271,40 @@ class BuyBagViewSet(viewsets.ModelViewSet):
         return queryset
 
 
+class OldBagViewSet(viewsets.ModelViewSet):
+    serializer_class = ExtBagSerializer
+    def get_queryset(self):
+        params = self.request.query_params.dict()
+        if 'startDate' in params and 'endDate' in params and 'user' in params and 'status' in params:
+            queryset = Bag.objects.filter(idclient=params['user'], bagstate_id=params['status'],
+                                          date__gte=params['startDate'], date__lte=params['endDate']
+                                          ).order_by('-date', '-bagid')
+        elif 'startDate' in params and 'endDate' in params and 'user' in params:
+            queryset = Bag.objects.filter(idclient=params['user'],
+                                          date__gte=params['startDate'], date__lte=params['endDate']
+                                          ).order_by('-date', '-bagid')
+        elif 'startDate' in params and 'endDate' in params and 'status' in params:
+            queryset = Bag.objects.filter(bagstate_id=params['status'],
+                                          date__gte=params['startDate'], date__lte=params['endDate']
+                                          ).order_by('-date', '-bagid')
+        elif 'startDate' in params and 'endDate' in params:
+            queryset = Bag.objects.filter(date__gte=params['startDate'], date__lte=params['endDate']
+                                          ).order_by('-date', '-bagid')
+        elif 'user' in params and 'status' in params:
+            queryset = Bag.objects.filter(idclient=params['user'], bagstate_id=params['status']).order_by('-date', '-bagid')
+        elif 'user' in params:
+            queryset = Bag.objects.filter(idclient=params['user'], bagstate_id__gt=1).order_by('-date', '-bagid')
+        elif 'status' in params:
+            queryset = Bag.objects.filter(bagstate_id=params['status']).order_by('-date', '-bagid')
+        else:
+            queryset = Bag.objects.all()
+
+
+        return queryset
+
+
+
+
 class CountModels(viewsets.ModelViewSet):
 
     def get_queryset(self):
@@ -249,10 +338,13 @@ from django.contrib.auth.models import User
 @api_view(['GET', 'POST'])
 def getJson(request):
         if request.method == 'POST':
-            user = User.objects.create_user(request.data['username'], request.data['email'], request.data['password'])
-            user.last_name = 'Lennon'
+            newUser=ast.literal_eval(request.data['body'])
+            # user = User.objects.create_user(request.data['username'], request.data['email'], request.data['password'])
+            user = User.objects.create_user(newUser['username'], newUser['email'], newUser['password'])
+            user.last_name = 'Смешарик'
             user.save()
-            print(request.data)
+            print('NEW USER DATA:')
+            print(newUser)
             return HttpResponse("{'status': 'ok'}")
         else:
             return HttpResponse("{'status': 'neok'}")
@@ -276,7 +368,23 @@ def login(request: Request):
 @permission_classes([IsAuthenticated])
 @authentication_classes([JWTAuthentication])
 def user(request: Request):
+    print('HELLO')
     print(UserSerializer(request.user).data)
     return Response({
         'data': UserSerializer(request.user).data
     })
+
+def test_view1(request):
+    #print(Book.objects.all())
+    #a = Book.objects.filter(authors = Author.objects.filter(first_name = '//l'))
+    # a = Book.objects.filter(authors__last_name = 'Alexeev')
+    a = Book.objects.filter(authors__last_name = 'Alexeev' or 'Амёба')
+    for i in a:
+        i.available_languages.add(Language.objects.get(id=3))
+    print(a)
+
+    for i in Book.objects.all():
+        for j in i.available_languages.all():
+            print(j.name)
+
+    return HttpResponse('<h1>Page was found</h1>')

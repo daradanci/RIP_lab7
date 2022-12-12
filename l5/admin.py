@@ -10,3 +10,7 @@ admin.site.register(Producer)
 admin.site.register(Purchase)
 admin.site.register(Bag)
 admin.site.register(State)
+
+admin.site.register(Language)
+admin.site.register(Book)
+admin.site.register(Author)

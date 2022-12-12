@@ -96,8 +96,6 @@ class RangeType extends Component {
         // console.log(res);
     }
 
-
-
     render() {
         const {error, isLoaded, range, models, search_input, isOpen, minPrice, maxPrice} = this.state;
         console.log(maxPrice)

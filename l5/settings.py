@@ -27,7 +27,8 @@ SECRET_KEY = 'django-insecure-fw7edr-+v(znj2xnr(0!4yk&2si*#haek3*1nkmqsk0agav^o4
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['172.17.231.1','localhost', '127.0.0.1', '176.59.174.196', '192.168.76.129']
+ALLOWED_HOSTS = ['172.17.231.1', 'localhost', '127.0.0.1', '176.59.174.196', '192.168.76.129', '192.168.56.1',
+                 '176.59.40.34', '192.168.186.129']
 # ALLOWED_HOSTS=[]
 
 # Application definition
@@ -52,6 +53,7 @@ CORS_ORIGIN_WHITELIST = (
     'http://localhost:8000', # For Django
 
 )
+CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS: True
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
